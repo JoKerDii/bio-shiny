@@ -1,9 +1,13 @@
 
-# rm(list= ls())
-# setwd("/data/zhendi/protocol/ballgown/ballgown-viz")
+rm(list= ls())
+setwd("D:/git/m6a-seq-analysis-visualizer/ballgown-viz")
 
 # initializer <- function(gown_file){
 # Load R packages
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install("ballgown")
 
 library(ballgown)
 library(genefilter)
@@ -11,7 +15,8 @@ library(ggplot2)
 library(tidyr)
 library(shiny)
 library(shinythemes)
-
+library(dplyr)
+library(gplots)
 
 
 load("homo_bg.rda")
@@ -33,6 +38,10 @@ gene_expression = as.data.frame(gexpr(bg))
 # Load the transcript to gene index from the ballgown object
 transcript_gene_table = indexes(bg)$t2g
 #Each row of data represents a transcript. Many of these transcripts represent the same gene. Determine the numbers of transcripts and unique genes
+# Differential expression results
+results_genes = stattest(bg, feature="gene", covariate="group", getFC=TRUE, meas="FPKM")
+results_genes = merge(results_genes,bg_gene_names,by.x=c("id"),by.y=c("gene_id"))
+
 
 # Set some variable values
 # colours()
@@ -40,6 +49,7 @@ data_colors=c("tomato1","tomato2","tomato3","royalblue1","royalblue2","royalblue
 
 # Load helper functions
 source('./figure_helper.R', echo=TRUE)
+source('./table_helper.R', echo=TRUE)
 
 
 # shiny
@@ -118,8 +128,68 @@ ui <- fluidPage(
     ),
     br(),
     hr(),
+    # 4. Plot04
+    sidebarLayout(
+      sidebarPanel(
+        tags$h3("Plot 4"),
+        hr(),
+        tags$h5("View the distribution of differential expression values as a histogram."),
+        tags$h6("Display only those that are significant according to Ballgown.")
+      ),
+      # Output of plots
+      mainPanel(
+        plotOutput("diff_exp_hist", height = 500)
+      )
+    ),
+    
     br(),
-    tags$h3("Supplementary Figures"),
+    hr(),
+    # 5. Plot05
+    sidebarLayout(
+      sidebarPanel(
+        tags$h3("Plot 5"),
+        hr(),
+        tags$h5("Display the expression values from experimental and control groups, and mark those that are significantly differentially expressed.")
+      ),
+      # Output of plots
+      mainPanel(
+        plotOutput("sig_diff", height = 500)
+      )
+    ),
+    br(),
+    hr(),
+    
+    # plot 06
+    sidebarLayout(
+      sidebarPanel(
+        tags$h3("Plot 6"),
+        hr(),
+        tags$h5("A heatmap vizualizes the expression differences between all samples.")
+      ),
+      # Output of plots
+      mainPanel(
+        plotOutput("heatmap", height = 500)
+      )
+    ),
+    br(),
+    hr(),
+    # makeTable2
+    
+    sidebarLayout(
+      sidebarPanel(
+        tags$h3("Table 1"),
+        hr(),
+        tags$h5("A table summarized information about differential expressed genes.")
+      ),
+      mainPanel(
+        DT::dataTableOutput("table2")
+      )),
+    
+
+    br(),
+    hr(),
+    br(),
+    tags$h3("Supplementary"),
     hr(),
     br(),
 
@@ -162,7 +232,64 @@ ui <- fluidPage(
       mainPanel(
         plotOutput("GeneFPKMdist", height = 500)
       )),
+    br(),
+    hr(),
+    
+    # Plot #4: pair of replicates
+    sidebarLayout(
+      sidebarPanel(
+        tags$h3("Plot #4"),
+        hr(),
+        tags$h5("Plot a pair of replicates to assess reproducibility of technical replicates, or compare control and experimental groups from the same library. "),
+        tags$h6("The data are transformed to log2 scale."),
 
+        hr(),
+        selectizeInput(inputId = "Sample2",
+                       label = tags$h4("Select a Sample:"),
+                       choices = sampleNames(bg),
+                       selected = c(sampleNames(bg)[1], sampleNames(bg)[2]),
+                       multiple = TRUE, 
+                       options = list(
+                         maxItems = 2
+                       )),
+      ),
+      # Output of plots
+      mainPanel(
+        plotOutput("pairOfReplicates", height = 500)
+      )
+    ),
+    br(),
+    hr(),
+    
+    # Plot #5 MDS distance
+    sidebarLayout(
+      sidebarPanel(
+        tags$h3("Plot #5"),
+        hr(),
+        tags$h5("Display the relative differences between libraries."),
+        tags$h6("The correlations are converted to 'distance', and multi-dimensional scaled. This step calculates 2-dimensional coordinates to plot points for each library. Libraries with similar expression patterns (highly correlated to each other) should group together.")
+      ),
+      # Output of plots
+      mainPanel(
+        plotOutput("MDSdistance", height = 500)
+      )),
+    br(),
+    hr(),
+    
+    # Table 1
+    sidebarLayout(
+      sidebarPanel(
+        tags$h3("Table #2"),
+        hr(),
+        tags$h5("Compare the correlation between all replicates.")
+      ),
+      mainPanel(
+        DT::dataTableOutput("table1")
+      )),
+    br(),
+    hr(),
+    
+    
     # Footer
     tags$br(),
     hr(),
@@ -185,8 +312,28 @@ server <- function(input, output) {
   output$trans_str <- renderPlot({
     trans_structure(input$Gene2, input$Sample)
   })
+  # plot04 - differential expression
+  output$diff_exp_hist <- renderPlot({
+    diff_exp_hist(results_genes)
+  })
+  # plot05 - differential expression + significant
+  output$sig_diff <- renderPlot({
+    sig_diff(gene_expression,results_genes)
+  })
+  # plot06 - heatmap
+  output$heatmap <- renderPlot({
+    heatmap(gene_expression,results_genes)
+  })
+  
 
-  ## Supplementary Figures
+  # Table 2 correlation 'distance'
+  output$table2 <- DT::renderDataTable(DT::datatable({
+    makeTable2(results_genes)
+    
+  }))
+  
+
+  ##### Supplementary 
   # Plot #1 - the number of transcripts per gene.
   output$transcriptCountPerGene <- renderPlot({
     transcript_per_gene(transcript_gene_table)
@@ -201,6 +348,22 @@ server <- function(input, output) {
   output$GeneFPKMdist <- renderPlot({
     boxplot01(gene_expression, transcript = FALSE)
   })
+  
+  # Plot #4 - pair of replicates
+  output$pairOfReplicates <- renderPlot({
+    pairOfReplicates(gene_expression, input$Sample2[1], input$Sample2[2])
+  })
+  
+  # Plot #5 - MDS distance
+  output$MDSdistance <- renderPlot({
+    MDSdistance(gene_expression)
+  })
+  
+  # Table 1 correlation 'distance'
+  output$table1 <- DT::renderDataTable(DT::datatable({
+    makeTable1(gene_expression)
+  }))
+
 
 }
 
