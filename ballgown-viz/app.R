@@ -1,15 +1,11 @@
 
-rm(list= ls())
-setwd("D:/git/m6a-seq-analysis-visualizer/ballgown-viz")
+# rm(list= ls())
+# setwd("/data/zhendi/protocol/ballgown/ballgown-viz")
 
 # initializer <- function(gown_file){
 # Load R packages
-if (!requireNamespace("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
 
-BiocManager::install("ballgown")
-
-library(ballgown)
+# library(ballgown)
 library(genefilter)
 library(ggplot2)
 library(tidyr)
@@ -19,28 +15,37 @@ library(dplyr)
 library(gplots)
 
 
-load("homo_bg.rda")
-# bg <- get(ls()[ls() != gown_file])
-group <- c(rep("experimental", 3), rep("control", 3))
-pData(bg) = data.frame(id=sampleNames(bg), group=group)
-
-
-# Analysis with Ballgown
-# Extract FPKM values from the 'bg' object
-fpkm = texpr(bg,meas="FPKM")
-# Transform the FPKM values by adding 1 and convert to a log2 scale
-fpkm = log2(fpkm+1)
-# Load all attributes and gene names
-bg_table = texpr(bg, 'all')
-bg_gene_names = unique(bg_table[, 9:10])
-# Pull the gene_expression data frame from the ballgown object
-gene_expression = as.data.frame(gexpr(bg))
-# Load the transcript to gene index from the ballgown object
-transcript_gene_table = indexes(bg)$t2g
-#Each row of data represents a transcript. Many of these transcripts represent the same gene. Determine the numbers of transcripts and unique genes
-# Differential expression results
-results_genes = stattest(bg, feature="gene", covariate="group", getFC=TRUE, meas="FPKM")
-results_genes = merge(results_genes,bg_gene_names,by.x=c("id"),by.y=c("gene_id"))
+# load("homo_bg.rda")
+# # bg <- get(ls()[ls() != gown_file])
+# group <- c(rep("experimental", 3), rep("control", 3))
+# pData(bg) = data.frame(id=sampleNames(bg), group=group)
+# 
+# sampleNames_bg <- sampleNames(bg)
+# # Analysis with Ballgown
+# # Extract FPKM values from the 'bg' object
+# fpkm = texpr(bg,meas="FPKM")
+# # Transform the FPKM values by adding 1 and convert to a log2 scale
+# fpkm = log2(fpkm+1)
+# # Load all attributes and gene names
+# bg_table = texpr(bg, 'all')
+# bg_gene_names = unique(bg_table[, 9:10]) # not required
+# # Pull the gene_expression data frame from the ballgown object
+# gene_expression = as.data.frame(gexpr(bg))
+# # Load the transcript to gene index from the ballgown object
+# transcript_gene_table = indexes(bg)$t2g
+# #Each row of data represents a transcript. Many of these transcripts represent the same gene. Determine the numbers of transcripts and unique genes
+# # Differential expression results
+# results_genes = stattest(bg, feature="gene", covariate="group", getFC=TRUE, meas="FPKM") #not required
+# results_genes = merge(results_genes,bg_gene_names,by.x=c("id"),by.y=c("gene_id"))
+# # save variables
+# variables <- c("sampleNames_bg", "fpkm", "bg_table", "gene_expression", "transcript_gene_table", "results_genes")
+# ls()
+# save(list=variables, file="myvariables.RData")
+# # rm(list=ls())
+# # ls()
+load("myvariables.RData")
+sampleNames_bg <- pData_bg[,1]
+group <- pData_bg[,2]
 
 
 # Set some variable values
@@ -100,38 +105,11 @@ ui <- fluidPage(
     br(),
     hr(),
 
-    # 3. Plot03: transcript structure
-    sidebarLayout(
-      sidebarPanel(
-        tags$h3("Plot 3"),
-        hr(),
-        sliderInput("Gene2",
-                    tags$h4("Index of genes:"),
-                    min = 1,
-                    max = nrow(fpkm),
-                    value = 30,
-                    step = 1),
-        hr(),
-        selectizeInput(inputId = "Sample",
-                       label = tags$h4("Select a Sample:"),
-                       choices = sampleNames(bg),
-                       # selected = NULL,
-                       # multiple = T,
-                       options = list(
-                         placeholder = 'Please select an option below'
-                       )),
-      ),
-      # Output of plots
-      mainPanel(
-        plotOutput("trans_str", height = 500)
-      )
-    ),
-    br(),
-    hr(),
+
     # 4. Plot04
     sidebarLayout(
       sidebarPanel(
-        tags$h3("Plot 4"),
+        tags$h3("Plot 3"),
         hr(),
         tags$h5("View the distribution of differential expression values as a histogram."),
         tags$h6("Display only those that are significant according to Ballgown.")
@@ -147,7 +125,7 @@ ui <- fluidPage(
     # 5. Plot05
     sidebarLayout(
       sidebarPanel(
-        tags$h3("Plot 5"),
+        tags$h3("Plot 4"),
         hr(),
         tags$h5("Display the expression values from experimental and control groups, and mark those that are significantly differentially expressed.")
       ),
@@ -162,7 +140,7 @@ ui <- fluidPage(
     # plot 06
     sidebarLayout(
       sidebarPanel(
-        tags$h3("Plot 6"),
+        tags$h3("Plot 5"),
         hr(),
         tags$h5("A heatmap vizualizes the expression differences between all samples.")
       ),
@@ -173,8 +151,38 @@ ui <- fluidPage(
     ),
     br(),
     hr(),
-    # makeTable2
     
+    ### can be visualized if gown object is available
+    # # 3. Plot03: transcript structure
+    # sidebarLayout(
+    #   sidebarPanel(
+    #     tags$h3("Plot 6"),
+    #     hr(),
+    #     sliderInput("Gene2",
+    #                 tags$h4("Index of genes:"),
+    #                 min = 1,
+    #                 max = nrow(fpkm),
+    #                 value = 30,
+    #                 step = 1),
+    #     hr(),
+    #     selectizeInput(inputId = "Sample",
+    #                    label = tags$h4("Select a Sample:"),
+    #                    choices = sampleNames_bg,
+    #                    # selected = NULL,
+    #                    # multiple = T,
+    #                    options = list(
+    #                      placeholder = 'Please select an option below'
+    #                    )),
+    #   ),
+    #   # Output of plots
+    #   mainPanel(
+    #     plotOutput("trans_str", height = 500)
+    #   )
+    # ),
+    # br(),
+    # hr(),
+    
+    # makeTable2
     sidebarLayout(
       sidebarPanel(
         tags$h3("Table 1"),
@@ -246,8 +254,8 @@ ui <- fluidPage(
         hr(),
         selectizeInput(inputId = "Sample2",
                        label = tags$h4("Select a Sample:"),
-                       choices = sampleNames(bg),
-                       selected = c(sampleNames(bg)[1], sampleNames(bg)[2]),
+                       choices = sampleNames_bg,
+                       selected = c(sampleNames_bg[1], sampleNames_bg[2]),
                        multiple = TRUE, 
                        options = list(
                          maxItems = 2
@@ -293,7 +301,7 @@ ui <- fluidPage(
     # Footer
     tags$br(),
     hr(),
-    p("App created by Di Zhen in Feb 2021", HTML("&bull;"), "Find the code on Github:", tags$a(href = "https://github.com/JoKerDii", "JoKerDii", tags$i(class = 'fa fa-github', style = 'color:#5000a5'), target = '_blank'), style = "font-size: 80%"),
+    p("App created by Di Zhen in Feb 2021", HTML("&bull;"), "Find the code on Github:", tags$a(href = "https://github.com/JoKerDii/m6a-seq-analysis-visualizer/", "JoKerDii", tags$i(class = 'fa fa-github', style = 'color:#5000a5'), target = '_blank'), style = "font-size: 80%"),
     p(tags$em("Last updated: Feb 2021"), style = 'font-size:75%')
 
   )
@@ -302,15 +310,15 @@ ui <- fluidPage(
 server <- function(input, output) {
   # plot01
   output$boxPlot01 <- renderPlot({
-    boxplot01(fpkm)
+    boxplot01(fpkm, pData_bg)
   })
   # plot02
   output$boxPlot02 <- renderPlot({
-    boxplot02(fpkm, input$Gene1)
+    boxplot02(fpkm, input$Gene1, pData_bg)
   })
   # plot03 - transcript structure
   output$trans_str <- renderPlot({
-    trans_structure(input$Gene2, input$Sample)
+    trans_structure(input$Gene2, input$Sample, geneIDs)
   })
   # plot04 - differential expression
   output$diff_exp_hist <- renderPlot({
@@ -318,7 +326,7 @@ server <- function(input, output) {
   })
   # plot05 - differential expression + significant
   output$sig_diff <- renderPlot({
-    sig_diff(gene_expression,results_genes)
+    sig_diff(gene_expression,results_genes,pData_bg)
   })
   # plot06 - heatmap
   output$heatmap <- renderPlot({
@@ -346,7 +354,7 @@ server <- function(input, output) {
 
   # Plot #3 - the distribution of FPKM value for gene expression.
   output$GeneFPKMdist <- renderPlot({
-    boxplot01(gene_expression, transcript = FALSE)
+    boxplot01(gene_expression, pData_bg,transcript = FALSE)
   })
   
   # Plot #4 - pair of replicates
@@ -356,7 +364,7 @@ server <- function(input, output) {
   
   # Plot #5 - MDS distance
   output$MDSdistance <- renderPlot({
-    MDSdistance(gene_expression)
+    MDSdistance(gene_expression,pData_bg)
   })
   
   # Table 1 correlation 'distance'

@@ -2,7 +2,7 @@ makeTable1 <- function(gene_expression){
   data_columns <- colnames(gene_expression)
   gene_expression[,"sum"]=apply(gene_expression[,data_columns], 1, sum)
   
-  #Identify the genes with a grand sum FPKM of at least 5 - filter out the genes with very low expression across the board
+  #Identify the genes with a grand sum FPKM of at least 5 - we will filter out the genes with very low expression across the board
   i = which(gene_expression[,"sum"] > 5)
   
   #Calculate the correlation between all pairs of data
@@ -19,6 +19,7 @@ makeTable2 <- function(results_genes){
   topn = order(abs(results_genes[sig,"fc"]), decreasing=TRUE)[1:25]
   topn = order(results_genes[sig,"qval"])[1:25]
 
+  #### Write a simple table of differentially expressed transcripts to an output file
   #Each should be significant with a log2 fold-change >= 2
   sigpi = which(results_genes[,"pval"]<0.05)
   sigp = results_genes[sigpi,]

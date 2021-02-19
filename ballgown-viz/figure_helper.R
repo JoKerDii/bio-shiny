@@ -3,7 +3,7 @@
 source('./plotTranscripts_cust.R', echo=TRUE)
 
 # plot01 and plot #3
-boxplot01 <- function(fpkm_data, transcript = TRUE) {
+boxplot01 <- function(fpkm_data,pData_bg, transcript = TRUE) {
   if (transcript == FALSE){
     # fpkm_data <- gexpr(bg) [gene level expression]
     min_nonzero <- 1
@@ -13,7 +13,7 @@ boxplot01 <- function(fpkm_data, transcript = TRUE) {
     fpkm_long <- gather(data.frame(fpkm_data), "Sample", "log2(FPKM+1)")
   }
   
-  index_table <- pData(bg)
+  index_table <- pData_bg
   index_table$id <- paste("FPKM.", index_table$id, sep='')
   colnames(index_table) <- c("Sample", "Group")
   fpkm_long <- left_join(fpkm_long, index_table, by = "Sample")
@@ -37,9 +37,9 @@ boxplot01 <- function(fpkm_data, transcript = TRUE) {
 }
 
 # plot02
-boxplot02 <- function(fpkm_data, Gene) {
-  colnames(fpkm_data) <- group
-  fpkm_tibble <- tibble(FPKM = fpkm_data[round(Gene),], Group = group)
+boxplot02 <- function(fpkm_data, Gene, pData_bg) {
+  colnames(fpkm_data) <- pData_bg[,2]
+  fpkm_tibble <- tibble(FPKM = fpkm_data[round(Gene),], Group = pData_bg[,2])
   p <- ggplot(data.frame(fpkm_tibble), aes(x=Group, y=FPKM, color = Group)) + 
     geom_boxplot() +
     geom_jitter(width=0.15) + labs(title = "log2(FPKM+1) of a Single Gene for Each Sample") +
@@ -60,8 +60,8 @@ boxplot02 <- function(fpkm_data, Gene) {
 }
 
 # plot03
-trans_structure <- function(Gene, Sample){
-  p = plotTranscripts_cust(ballgown::geneIDs(bg)[Gene], bg, main=paste('Transcript Structure in Sample',Sample), sample=Sample, labelTranscripts=TRUE)
+trans_structure <- function(Gene, Sample, geneIDs){
+  p = plotTranscripts_cust(geneIDs[Gene], bg, main=paste('Transcript Structure in Sample',Sample), sample=Sample, labelTranscripts=TRUE)
   return(p)
 }
 
@@ -92,11 +92,10 @@ diff_exp_hist <- function(results_genes){
 
 
 # plot 05
-sig_diff <- function(gene_expression, results_genes){
-  gene_expression = as.data.frame(gexpr(bg))
+sig_diff <- function(gene_expression, results_genes,pData_bg){
   sig=which(results_genes$pval<0.05)
   # generate label names
-  index_table <- pData(bg)
+  index_table <- pData_bg
   index_table$id <- paste("FPKM", index_table$id, sep='.')
   colnames(index_table) <- c("Sample", "Group")
   shortNames <- as.character(index_table$Group[match(colnames(gene_expression), index_table$Sample)])
@@ -145,12 +144,13 @@ sig_diff <- function(gene_expression, results_genes){
 # plot 06
 heatmap <- function(gene_expression, results_genes){
   results_genes[,"de"] = log2(results_genes[,"fc"])
+  sigpi = which(results_genes[,"pval"]<0.05)
   #Get the gene symbols for the top N (according to corrected p-value) and display them on the plot
-  topn = order(abs(results_genes[sig,"fc"]), decreasing=TRUE)[1:25]
-  topn = order(results_genes[sig,"qval"])[1:25]
+  topn = order(abs(results_genes[sigpi,"fc"]), decreasing=TRUE)[1:25]
+  topn = order(results_genes[sigpi,"qval"])[1:25]
   
   #Each should be significant with a log2 fold-change >= 2
-  sigpi = which(results_genes[,"pval"]<0.05)
+  
   sigp = results_genes[sigpi,]
   sigde = which(abs(sigp[,"de"]) >= 2)
   sig_tn_de = sigp[sigde,]
@@ -260,7 +260,7 @@ pairOfReplicates <- function(gene_expression, choice1 = sampleNames(bg)[1], choi
 }
 
 # plot #5
-MDSdistance <- function(gene_expression){
+MDSdistance <- function(gene_expression,pData_bg){
   data_columns <- colnames(gene_expression)
   gene_expression_sum=apply(gene_expression[,data_columns], 1, sum)
   #Identify the genes with a grand sum FPKM of at least 5 -  filter out the genes with very low expression across the board
@@ -272,7 +272,7 @@ MDSdistance <- function(gene_expression){
   mds=cmdscale(d, k=2, eig=TRUE)
   data_colors=c("tomato1","tomato2","tomato3","royalblue1","royalblue2","royalblue3")
   # generate label names
-  index_table <- pData(bg)
+  index_table <- pData_bg
   index_table$id <- paste("FPKM", index_table$id, sep='.')
   colnames(index_table) <- c("Sample", "Group")
   shortNames <- as.character(index_table$Group[match(colnames(gene_expression), index_table$Sample)])
