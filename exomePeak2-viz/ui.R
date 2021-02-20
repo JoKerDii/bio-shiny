@@ -13,8 +13,11 @@ shinyUI(fluidPage(
   tags$head(
     includeScript("web/ggcircos.js")
   ),
+  
+  # App title
+  titlePanel(HTML("<h3>exomePeak2 - visualizer</h3>"),windowTitle = "exomePeak2 visualizer"),
 
-  HTML("<h3>exomePeak2 - visualizer</h3>"),
+  
   fluidRow(
   column(7,
          

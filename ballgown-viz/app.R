@@ -63,8 +63,11 @@ ui <- fluidPage(
     theme = shinytheme('flatly'),
 
     # App title
-    titlePanel(tags$b("Ballgown Visualizer", style = "font-size: 110%, font-family:Helvetica; color:#010151"), windowTitle = "Ballgown Visualizer"),
-    hr(),
+    titlePanel(HTML("<h3>Ballgown - Visualizer</h3>"), windowTitle = "Ballgown Visualizer"),
+    tags$head(
+      includeCSS("style1.css")
+    ),
+	hr(),
 
     # App Description
     p("This is a visualization tool designed specifically for differential expression analysis pipline: HISAT2 - StringTie - Ballbown, aiming to explore the high-throughput sequencing data and the analysis results.", style = "font-size: 100%"),
