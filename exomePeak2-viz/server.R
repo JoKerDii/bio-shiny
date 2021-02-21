@@ -25,7 +25,7 @@ radians_m <- create_radians(chroms, lengths)
 server <- function(input, output, session) {
   re_values <- reactiveValues(
     scaling_factors = rep(1, 24), previous_radians = radians_f,
-    chrom_clicked = "1", chroms_selected = NULL
+    chrom_clicked = "1", chroms_selected = NULL, sig = 0.4
   )
 
   radians <- reactive({
@@ -68,6 +68,7 @@ server <- function(input, output, session) {
   peaks_filt <- reactive({#################################################################################################### peaks_filt
     peaks %>%
       drop_na() %>%
+      filter(padj <= input$float) %>% # re_values$sig
       mutate(pos = (chromStart + chromEnd) / 2) %>%
       mutate(chr = as.factor(str_remove(chr, "chr"))) %>%
       mutate(copy_number = as.integer(case_when(strand == "+" ~ 1,
@@ -108,7 +109,6 @@ server <- function(input, output, session) {
     peaks_plot_data$copy_number <- paste0("peak", peaks_plot_data$copy_number)
     
     peaks_plot_data <- data.frame(rbind(peaks_plot_data, peaks_plot_data),
-                                  # r = c(rep(cnv_inner, nrow(cnv_plot_data)), rep(cnv_outer, nrow(cnv_plot_data))))
                                   r = c(peak_inner, peak_outer)
     )
     

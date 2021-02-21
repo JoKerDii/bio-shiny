@@ -9,13 +9,12 @@ shinyUI(fluidPage(
   tags$head(
     includeCSS("web/styles1.css")
   ),
+  # App title
+  titlePanel(HTML("<h3>exomePeak2 - visualizer</h3>"),windowTitle = "exomePeak2 visualizer"),
   
   tags$head(
     includeScript("web/ggcircos.js")
   ),
-  
-  # App title
-  titlePanel(HTML("<h3>exomePeak2 - visualizer</h3>"),windowTitle = "exomePeak2 visualizer"),
 
   
   fluidRow(
@@ -27,37 +26,27 @@ shinyUI(fluidPage(
              p("Although this plot cannot give much biological information, it's useful for brief view of analysis outputs. Please refer to UCSC Genome Browser or other visualization tools where you can obtain informative knowledge related to biological functions."),
              br(),
              p("This plot shows a number of layers. Firstly, the lines represent peaks along the whole genome in each chromosome. By clicking on one chromosome block, the peak regions are revealed. You can control how much the chromosome expands by using Resize Factor slider below the table. The bars upwards are peaks on the positive strands, and the bars downwards are peaks on the negative strands. Hover the bars for specific ranges of the peaks."),
-             p("Moving inwards, adjusted p-values are shown as a scatter plot. Red points are adjusted p-values less than 0.05, which reveals that the differential expression of this region/genes is significant. Hover the points for more details. ")
+             p("Moving inwards, adjusted p-values are shown as a scatter plot. Red points are adjusted p-values less than 0.05, which reveal that the differential expression of this region/genes is significant. Hover the points for more details. "),
+             p("There is also a slider named 'Significance Filter' which allows displaying peaks with adjusted p-values below a selected boundary.")
              ),
          
          
          
          HTML("<button type='button' class='btn' data-toggle='collapse' style='float:left' data-target='#app_info'><span class='glyphicon glyphicon-collapse-down'></span> More Information</button>"),
-         
          br(),  br(), 
-   
          ggvisOutput("plot")
 
   ),
   
   column(5,
          br(),
-
-         div(id = "genes_div"),
- 
-         div(id = "transcripts_div"),
-
-         div(id = "clinvar_div"),
-         
          h4("Summary of Peak Calling Results (Top10 significant):"),
-         
          tableOutput("top_clinvar_genes"),
-         
          br(),   
          
+         sliderInput("integer", "Resize Factor:", min = 1, max = 15, value = 5),
+         sliderInput("float", "Significance Filter:", min = 0.0001, max = 0.4000, value = 200)
          
-         
-         sliderInput("integer", "Resize Factor:", min = 1, max = 15, value = 5)
          
   )),
   fluidRow(column(12,
