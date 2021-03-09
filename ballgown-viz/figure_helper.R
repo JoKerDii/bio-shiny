@@ -142,43 +142,41 @@ sig_diff <- function(gene_expression, results_genes,pData_bg){
   
 }
 # plot 06
-heatmap <- function(gene_expression, results_genes){
+heatmap = function(gene_expression, results_genes){
+  library(RColorBrewer)
+  Colors=brewer.pal(11,"Spectral")
   results_genes[,"de"] = log2(results_genes[,"fc"])
   sigpi = which(results_genes[,"pval"]<0.05)
-  #Get the gene symbols for the top N (according to corrected p-value) and display them on the plot
   topn = order(abs(results_genes[sigpi,"fc"]), decreasing=TRUE)[1:25]
   topn = order(results_genes[sigpi,"qval"])[1:25]
-  
-  #Each should be significant with a log2 fold-change >= 2
-  
   sigp = results_genes[sigpi,]
   sigde = which(abs(sigp[,"de"]) >= 2)
   sig_tn_de = sigp[sigde,]
-  
   mydist=function(c) {dist(c,method="euclidian")}
   myclust=function(c) {hclust(c,method="average")}
-  main_title="Significance of Differential Expression"
-  par(cex.main=1.5)
+  main_title="Heatmap of Differential Expression"
+  par(cex.main=1)
   sig_genes_de=sig_tn_de[,"id"]
   sig_gene_names_de=sig_tn_de[,"gene_name"]
   data=log2(as.matrix(gene_expression[as.vector(sig_genes_de),])+1)
-  p <- heatmap.2(data, 
-                 hclustfun=myclust, 
-                 distfun=mydist, 
-                 na.rm = TRUE, 
-                 scale="none", 
-                 dendrogram="both", 
-                 margins=c(10,4), 
-                 Rowv=TRUE, Colv=TRUE, 
-                 symbreaks=FALSE, key=TRUE, symkey=FALSE, 
-                 density.info="none", trace="none", 
-                 main=main_title, 
-                 cexRow=1, cexCol=1.5, 
-                 labRow=sig_gene_names_de,
-                 col=rev(heat.colors(75)))
+  p = heatmap.2(data, 
+                hclustfun=myclust, 
+                distfun=mydist, 
+                na.rm = TRUE, 
+                scale="none", 
+                dendrogram="both", 
+                margins=c(12,9),
+                Rowv=TRUE, Colv=TRUE, 
+                symbreaks=FALSE, key=TRUE, symkey=FALSE, 
+                density.info="none", trace="none", 
+                main=main_title, 
+                cexRow=1, cexCol=1.5, 
+                labRow=sig_gene_names_de,
+                # col=rev(heat.colors(75)),
+                col=Colors)
   return(p)
-  
 }
+
 
 
 # plot #1
