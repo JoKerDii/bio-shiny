@@ -34,18 +34,21 @@ shinyUI(fluidPage(theme = "style1.css",
                           pickerInput(
                             "MeasurePicker", "Choose a dataset",
                             
-                            choices = c("tissue"),
-                            selected = "tissue",
+                            choices = c("Microarray","RNAseq", "MeRIPseq"),
+                            selected = "Microarray",
                             multiple = F
                           ),
                           
-                          tags$p(HTML("PCA is a demensionality reduction technique, and can be used for visualizing high dimensional data. Three coordinates corresponds to three principal components, which capture most of the variance in the data."))
+                          tags$p(HTML("PCA is a demensionality reduction technique, which can be used for visualizing high dimensional data. Three coordinates corresponds to three principal components, which capture most of the variance in the data.")),
+                          tags$p(HTML("'Microarray' is a tabular data containing expression levels obtained from a set of microarray experiments. There are 22215 genes in 189 samples from 7 human tissues.")),
+                          tags$p(HTML("'RNAseq' is a summarized result of differential expression analysis with CuffDiff. It contains FPKM values for 26260 genes in two experimental conditions.")),
+                          tags$p(HTML("'MeRIPseq' is a summarized result of differential expression analysis with Ballgown. It contains FPKM values for 87841 genes in two experimental conditions."))
                           
                         ),
                         
                         # Main panel with plot.
                         mainPanel(
-                          plotlyOutput("PCA",width = "950px", height = "700px")
+                          plotlyOutput("PCA",width = "950px", height = "600px")
                         ),
                         hr(),
                         div(#class = "footer",
