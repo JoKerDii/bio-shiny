@@ -1,0 +1,7 @@
+file	condition	replicate_num	total_mass	norm_mass	internal_scale	external_scale
+/home/zhen.di/cw1/bam/SRR1039508_sorted.bam	WT	0	1.89466e+07	1.81296e+07	1.10974	1
+/home/zhen.di/cw1/bam/SRR1039512_sorted.bam	WT	1	2.32963e+07	1.81296e+07	1.27489	1
+/home/zhen.di/cw1/bam/SRR1039520_sorted.bam	WT	2	1.7511e+07	1.81296e+07	0.988773	1
+/home/zhen.di/cw1/bam/SRR1039509_sorted.bam	EX	0	1.71447e+07	1.81296e+07	0.969368	1
+/home/zhen.di/cw1/bam/SRR1039513_sorted.bam	EX	1	1.38582e+07	1.81296e+07	0.7244	1
+/home/zhen.di/cw1/bam/SRR1039521_sorted.bam	EX	2	1.94626e+07	1.81296e+07	1.02879	1

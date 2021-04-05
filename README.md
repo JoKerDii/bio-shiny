@@ -14,3 +14,4 @@ Apps for other biological analysis:
 
 https://jokerdii.shinyapps.io/tissue-viz/
 
+https://jokerdii.shinyapps.io/cuffdiff-viz/
