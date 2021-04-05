@@ -13,6 +13,7 @@ library(shiny)
 library(shinythemes)
 library(dplyr)
 library(gplots)
+library(plotly)
 
 
 # load("homo_bg.rda")
@@ -56,7 +57,6 @@ data_colors=c("tomato1","tomato2","tomato3","royalblue1","royalblue2","royalblue
 source('./figure_helper.R', echo=TRUE)
 source('./table_helper.R', echo=TRUE)
 
-
 # shiny
 # Define UI for application 
 ui <- fluidPage(
@@ -67,24 +67,37 @@ ui <- fluidPage(
     tags$head(
       includeCSS("style1.css")
     ),
-	hr(),
-
-    # App Description
-    p("This is a visualization tool designed specifically for differential expression analysis pipline: HISAT2 - StringTie - Ballbown, aiming to explore the high-throughput sequencing data and the analysis results.", style = "font-size: 100%"),
+    
     hr(),
 
-    # 1. Plot01
+    # App Description
+    p("This app is designed for visualizing differential expression analysis results. The datasets are MeRIP seq data (GSE93676) downloaded from GEO database. Hisat2-Stringtie-Ballgown pipeline was adopted for analyzing data.", style = "font-size: 100%"),
+    hr(),
+
+    # # 1. Plot01
+    # sidebarLayout(
+    #   sidebarPanel(
+    #     tags$h3("Plot 1"),
+    #     hr(),
+    #     tags$h5("A boxplot to display summary statistics for the FPKM values for each sample.")
+    #   ),
+    #   # Output of plots
+    #   mainPanel(
+    #     plotlyOutput("boxPlot01", height = 500)
+    #   )
+    # ),
+    # br(),
+    # hr(),
+    
     sidebarLayout(
       sidebarPanel(
         tags$h3("Plot 1"),
         hr(),
-        tags$h5("A boxplot to display summary statistics for the FPKM values for each sample.")
+        tags$h5("View the range of values and general distribution of FPKM values for all samples.")
       ),
-      # Output of plots
       mainPanel(
-        plotOutput("boxPlot01", height = 500)
-      )
-    ),
+        plotlyOutput("GeneFPKMdist", height = 500)
+      )),
     br(),
     hr(),
 
@@ -145,11 +158,11 @@ ui <- fluidPage(
       sidebarPanel(
         tags$h3("Plot 5"),
         hr(),
-        tags$h5("A heatmap vizualizes the expression differences between all samples.")
+        tags$h5("A heatmap vizualizes the expression differences among all samples.")
       ),
       # Output of plots
       mainPanel(
-        plotOutput("heatmap", height = 500)
+        plotOutput("heatmap", height = 700)
       )
     ),
     br(),
@@ -185,29 +198,16 @@ ui <- fluidPage(
     # br(),
     # hr(),
     
-    # makeTable2
-    sidebarLayout(
-      sidebarPanel(
-        tags$h3("Table 1"),
-        hr(),
-        tags$h5("A table summarized information about differential expressed genes.")
-      ),
-      mainPanel(
-        DT::dataTableOutput("table2")
-      )),
     
-
-    br(),
-    hr(),
-    br(),
-    tags$h3("Supplementary"),
-    hr(),
-    br(),
+    # br(),
+    # tags$h3("Supplementary"),
+    # hr(),
+    # br(),
 
     # plot #1
     sidebarLayout(
       sidebarPanel(
-        tags$h3("Plot #1"),
+        tags$h3("Plot 6"),
         hr(),
         tags$h5("This plot displays the number of transcripts per gene.")
       ),
@@ -220,7 +220,7 @@ ui <- fluidPage(
     # plot #2
     sidebarLayout(
       sidebarPanel(
-        tags$h3("Plot #2"),
+        tags$h3("Plot 7"),
         hr(),
         tags$h5("This plot displays the number of transcripts per gene."),
         tags$h6("If we supplied StringTie with transcript models, the lengths will be those of known transcripts.
@@ -233,23 +233,12 @@ ui <- fluidPage(
     br(),
     hr(),
 
-    # plot #3
-    sidebarLayout(
-      sidebarPanel(
-        tags$h3("Plot #3"),
-        hr(),
-        tags$h5("View the range of values and general distribution of FPKM values for all samples.")
-      ),
-      mainPanel(
-        plotOutput("GeneFPKMdist", height = 500)
-      )),
-    br(),
-    hr(),
+    
     
     # Plot #4: pair of replicates
     sidebarLayout(
       sidebarPanel(
-        tags$h3("Plot #4"),
+        tags$h3("Plot 8"),
         hr(),
         tags$h5("Plot a pair of replicates to assess reproducibility of technical replicates, or compare control and experimental groups from the same library. "),
         tags$h6("The data are transformed to log2 scale."),
@@ -275,7 +264,7 @@ ui <- fluidPage(
     # Plot #5 MDS distance
     sidebarLayout(
       sidebarPanel(
-        tags$h3("Plot #5"),
+        tags$h3("Plot 9"),
         hr(),
         tags$h5("Display the relative differences between libraries."),
         tags$h6("The correlations are converted to 'distance', and multi-dimensional scaled. This step calculates 2-dimensional coordinates to plot points for each library. Libraries with similar expression patterns (highly correlated to each other) should group together.")
@@ -287,10 +276,26 @@ ui <- fluidPage(
     br(),
     hr(),
     
+    
+    # makeTable2
+    sidebarLayout(
+      sidebarPanel(
+        tags$h3("Table 1"),
+        hr(),
+        tags$h5("A table summarized information about differential expressed genes.")
+      ),
+      mainPanel(
+        DT::dataTableOutput("table2")
+      )),
+    
+    
+    br(),
+    hr(),
+    
     # Table 1
     sidebarLayout(
       sidebarPanel(
-        tags$h3("Table #2"),
+        tags$h3("Table 2"),
         hr(),
         tags$h5("Compare the correlation between all replicates.")
       ),
@@ -301,20 +306,23 @@ ui <- fluidPage(
     hr(),
     
     
+    
+    
     # Footer
     tags$br(),
     hr(),
-    p("App created by Di Zhen in Feb 2021", HTML("&bull;"), "Find the code on Github:", tags$a(href = "https://github.com/JoKerDii/m6a-seq-analysis-visualizer/", "JoKerDii", tags$i(class = 'fa fa-github', style = 'color:#5000a5'), target = '_blank'), style = "font-size: 80%"),
+    p("App created by Di Zhen in Feb 2021", HTML("&bull;"), "Find the code on Github:", tags$a(href = "https://github.com/JoKerDii", "JoKerDii", tags$i(class = 'fa fa-github', style = 'color:#5000a5'), target = '_blank'), style = "font-size: 80%"),
     p(tags$em("Last updated: Feb 2021"), style = 'font-size:75%')
 
   )
 
 # Define server logic
 server <- function(input, output) {
-  # plot01
-  output$boxPlot01 <- renderPlot({
-    boxplot01(fpkm, pData_bg)
-  })
+  # # plot01
+  # output$boxPlot01 <- renderPlotly({
+  #   p <- boxplot01(fpkm, pData_bg)
+  #   ggplotly(p)
+  # })
   # plot02
   output$boxPlot02 <- renderPlot({
     boxplot02(fpkm, input$Gene1, pData_bg)
@@ -356,8 +364,8 @@ server <- function(input, output) {
   })
 
   # Plot #3 - the distribution of FPKM value for gene expression.
-  output$GeneFPKMdist <- renderPlot({
-    boxplot01(gene_expression, pData_bg,transcript = FALSE)
+  output$GeneFPKMdist <- renderPlotly({
+    ggplotly(boxplot01(gene_expression, pData_bg,transcript = FALSE))
   })
   
   # Plot #4 - pair of replicates

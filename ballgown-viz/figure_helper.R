@@ -18,16 +18,17 @@ boxplot01 <- function(fpkm_data,pData_bg, transcript = TRUE) {
   colnames(index_table) <- c("Sample", "Group")
   fpkm_long <- left_join(fpkm_long, index_table, by = "Sample")
   p <- ggplot(fpkm_long, aes(x=Sample, y=`log2(FPKM+1)`, fill = Group)) + 
-    geom_boxplot() + coord_flip() +
+    geom_boxplot() +
+    # coord_flip() +
     labs(title = "log2(FPKM+1) for Each Sample") +
     theme_bw() + 
-    theme(plot.title = element_text(face="bold", size=18, vjust=0.5, hjust=0.5),
-          axis.title.x = element_text(face="bold", size=15, vjust=0.5), 
-          axis.title.y = element_text(face="bold", size=15, vjust=0.5),
-          axis.text.x = element_text(size=12, colour="black", face="bold"),
-          axis.text.y = element_text(size=12, colour="black", face="bold"),
-          legend.text = element_text(size=15, colour="black", face="bold"),
-          legend.title = element_text(size=15, colour="black", face="bold"),
+    theme(plot.title = element_text(face="bold", size=14, vjust=0.5, hjust=0.5),
+          axis.title.x = element_text(face="bold", size=12, vjust=0.5), 
+          axis.title.y = element_text(face="bold", size=12, vjust=0.5),
+          axis.text.x = element_text(size=10, colour="black", face="bold",angle = 30),
+          axis.text.y = element_text(size=10, colour="black", face="bold"),
+          legend.text = element_text(size=12, colour="black", face="bold"),
+          legend.title = element_text(size=12, colour="black", face="bold"),
           # legend.background = element_rect(fill = "transparent"),
           # legend.key = element_rect(fill = "transparent"),
           # legend.justification = c(1, 0), legend.position = c(0.99, 0.01),
@@ -145,6 +146,9 @@ sig_diff <- function(gene_expression, results_genes,pData_bg){
 heatmap = function(gene_expression, results_genes){
   library(RColorBrewer)
   Colors=brewer.pal(11,"Spectral")
+  # Colors=c("blue","yellow","red")
+  # Colors=colorRampPalette(Colors)(100)
+  
   results_genes[,"de"] = log2(results_genes[,"fc"])
   sigpi = which(results_genes[,"pval"]<0.05)
   topn = order(abs(results_genes[sigpi,"fc"]), decreasing=TRUE)[1:25]
@@ -155,7 +159,7 @@ heatmap = function(gene_expression, results_genes){
   mydist=function(c) {dist(c,method="euclidian")}
   myclust=function(c) {hclust(c,method="average")}
   main_title="Heatmap of Differential Expression"
-  par(cex.main=1)
+  par(cex.main=1.3)
   sig_genes_de=sig_tn_de[,"id"]
   sig_gene_names_de=sig_tn_de[,"gene_name"]
   data=log2(as.matrix(gene_expression[as.vector(sig_genes_de),])+1)
@@ -176,8 +180,6 @@ heatmap = function(gene_expression, results_genes){
                 col=Colors)
   return(p)
 }
-
-
 
 # plot #1
 transcript_per_gene <- function(transcript_gene_table) {
