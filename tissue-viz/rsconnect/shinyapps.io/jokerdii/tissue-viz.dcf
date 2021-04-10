@@ -5,6 +5,6 @@ account: jokerdii
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3896785
-bundleId: 4431675
+bundleId: 4453289
 url: https://jokerdii.shinyapps.io/tissue-viz/
-when: 1617591988.66848
+when: 1618034748.97177

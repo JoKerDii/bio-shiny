@@ -2,6 +2,7 @@ library(dplyr)
 library(SummarizedExperiment)
 library(data.table)
 library(caret)
+library(Rtsne)
 
 setwd("D:/git/bio-shiny/tissue-viz")
 getwd()
@@ -14,21 +15,39 @@ tissue <- tissue[[1]]
 mydata <- data.frame(t(assay(SE)))
 mydata <- mydata %>% mutate(tissue = tissue)
 # mydata$tissue 
-pc <- prcomp(mydata[,1:22215], center = TRUE,scale. = TRUE)
+# NZV<- nearZeroVar(mydata, saveMetrics = TRUE)
+# mydata_filter <- mydata[, which(NZV[, "nzv"] == FALSE)]
 
+pc <- prcomp(mydata[,1:22215], center = T, scale. = T)
 myPC <- data.frame(pc$x[,1:3])
 myPC <- myPC %>% mutate(tissue = tissue)
-write.csv(myPC, "data/tissue_pc.csv")
+# write.csv(pc$x[,1:50], "data/allpcs_tissue.csv")
 mypc_tissue <- read.csv("data/tissue_pc.csv")
+allpcs <- read.csv("data/allpcs_tissue.csv")
+
+### tsne
+# pc <- prcomp(mydata[,1:22215], center = F, scale. = F)
+allpcs <- read.csv("data/allpcs_tissue.csv")
+tissue <- read.csv("data/tissue.csv") 
+tsne.results <- Rtsne(allpcs, check_duplicates = FALSE, dims=3, theta=0.0, pca=FALSE, verbose=FALSE, max_iter=1000, perplexity=10)
+colnames(tsne.results$Y) <- c("V1", "V2", "V3")
+mytsnedata <- data.frame(tsne.results$Y)
+mytsnedata <- mytsnedata %>% mutate(tissue = tissue)
+# write.csv(mytsnedata, "data/tsne_three.csv", row.names = FALSE)
+# mypc_tsne <- read.csv("data/tsne_three.csv")
+
+
 
 
 ### Cuffdiff results from RNAseq data
 
 cuffdiff <- read.csv("data/cuffdiff.csv") 
+cuffdiff <- read.csv("data/cuffdiff_three.csv") 
 cuffdiff <- tidyr::spread(cuffdiff, rep_name, fpkm) # %>% as.data.frame()
+# cuffdiff <- cuffdiff[, c(1:5,10:17)] # three
 rownames(cuffdiff) <- cuffdiff$gene_id
-sample_names <- colnames(cuffdiff)[2:7]
-cuffdiff_t <- transpose(cuffdiff[,2:7])[1:6,] %>% as.data.frame()
+sample_names <- colnames(cuffdiff)[2:length(colnames(cuffdiff))]
+cuffdiff_t <- transpose(cuffdiff[,2:length(colnames(cuffdiff))])[1:length(colnames(cuffdiff))-1,] %>% as.data.frame()
 rownames(cuffdiff_t) <- sample_names
 
 NZV<- nearZeroVar(cuffdiff_t, saveMetrics = TRUE)
@@ -36,8 +55,8 @@ cuffdiff_t_filter <- cuffdiff_t[, which(NZV[, "nzv"] == FALSE)]
 pc <- prcomp(cuffdiff_t_filter, center = TRUE, scale. = TRUE)
 myPC <- data.frame(pc$x[,1:3])
 myPC <- myPC %>% mutate(group = sample_names)
-write.csv(myPC, "data/cuffdiff_pc.csv")
-mypc_cuffdiff <- read.csv("data/cuffdiff_pc.csv")
+# write.csv(myPC, "data/cuffdiff_three_pc.csv")
+mypc_cuffdiff <- read.csv("data/cuffdiff_three_pc.csv")
 
 
 ### ballgown results from MeRIPseq data
@@ -53,6 +72,35 @@ MeRIPseq_t_filter <- MeRIPseq_t[, which(NZV[, "nzv"] == FALSE)]
 pc <- prcomp(MeRIPseq_t_filter, center = TRUE, scale. = TRUE)
 myPC <- data.frame(pc$x[,1:3])
 myPC <- myPC %>% mutate(group = rownames(MeRIPseq_t))
-write.csv(myPC, "data/MeRIPseq_pc.csv")
+# write.csv(myPC, "data/MeRIPseq_pc.csv")
 mypc_MeRIPseq <- read.csv("data/MeRIPseq_pc.csv")
+
+###############################################################
+# MDS for tissue
+tissue <- read.csv("data/tissue.csv") # 189
+e <- read.csv("data/expression.csv", row.names = "probeID")
+SE <- SummarizedExperiment(assays = I(e), colData = DataFrame(tissue))
+tissue <- tissue[[1]]
+mydata <- data.frame(t(assay(SE)))
+
+mds_mydata <- mydata %>%
+  dist() %>%          
+  cmdscale(k=3) %>%
+  as.data.frame()
+
+mds_mydata <- mds_mydata %>% mutate(tissue = tissue)
+# write.csv(mds_mydata, "data/tissue_mds.csv")
+mds_tissue <- read.csv("data/tissue_mds.csv")
+
+
+####################################################################
+
+# tissue <- read.csv("data/tissue.csv") # 189
+# e <- read.csv("data/expression.csv", row.names = "probeID")
+# SE <- SummarizedExperiment(assays = I(e), colData = DataFrame(tissue))
+# tissue <- tissue[[1]]
+# mydata <- data.frame(t(assay(SE)))
+# 
+# NZV<- nearZeroVar(mydata, saveMetrics = TRUE)
+# mydata_filter <- mydata[, which(NZV[, "nzv"] == FALSE)]
 
