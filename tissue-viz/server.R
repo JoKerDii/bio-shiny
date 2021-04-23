@@ -22,7 +22,7 @@ shinyServer(function(input, output, session) {
   
   output$PCA <- renderPlotly({
     
-    if(input$MeasurePicker == "Microarray") {
+    if(input$MeasurePicker1 == "Microarray") {
       mynewpc <- read.csv("data/tissue_pc.csv")
       
       fig <- plot_ly(mynewpc, x = ~PC1, y = ~PC2, z = ~PC3, color = ~tissue, 
@@ -33,7 +33,7 @@ shinyServer(function(input, output, session) {
                                          zaxis = list(title = 'PC3')))
       fig
       
-    }  else if (input$MeasurePicker == "RNAseq") {
+    }  else if (input$MeasurePicker1 == "RNAseq") {
       # mynewpc <- read.csv("data/cuffdiff_pc.csv")
       # mynewpc <- read.csv("data/cuffdiff_multi_pc.csv")
       mynewpc <- read.csv("data/cuffdiff_three_pc.csv")
@@ -49,7 +49,7 @@ shinyServer(function(input, output, session) {
                                          yaxis = list(title = 'PC2'),
                                          zaxis = list(title = 'PC3')))
       fig
-    } else if (input$MeasurePicker == "MeRIPseq") {
+    } else if (input$MeasurePicker1 == "MeRIPseq") {
       mynewpc <- read.csv("data/MeRIPseq_pc.csv")
       
       fig <- plot_ly(mynewpc, x = ~PC1, y = ~PC2, z = ~PC3, color = ~group, 
@@ -59,12 +59,11 @@ shinyServer(function(input, output, session) {
                                          yaxis = list(title = 'PC2'),
                                          zaxis = list(title = 'PC3')))
       fig
-    }
-      else {
-      mynewpc <- read.csv("data/tissue_pc.csv")
-      
-      fig <- plot_ly(mynewpc, x = ~PC1, y = ~PC2, z = ~PC3, color = ~tissue, 
-                     colors = c('#ff0000','#ff4da6','#ffcc00','#47d147','#33ccff','#0066ff','#6600ff'))
+    } else if (input$MeasurePicker1 == "Single-Cell-RNAseq") {
+      mynewpc <- read.csv("data/scRNAseq_pc.csv")
+      # mynewpc <- mynewpc %>% mutate(label = as.factor(label))
+      fig <- plot_ly(mynewpc, x = ~PC1, y = ~PC2, z = ~PC3, color = ~as.factor(label), 
+                     colors = c('#FE642E','#7cc652','#2ECCFA','#8181F7','#F7819F'), alpha = 0.7)
       fig <- fig %>% add_markers()
       fig <- fig %>% layout(scene = list(xaxis = list(title = 'PC1'),
                                          yaxis = list(title = 'PC2'),
@@ -74,7 +73,7 @@ shinyServer(function(input, output, session) {
   })
   
   output$MDS <- renderPlotly({
-    if (input$MeasurePicker == "Microarray"){
+    if (input$MeasurePicker2 == "Microarray"){
       mds_tissue <- read.csv("data/tissue_mds.csv")
       fig <- plot_ly(mds_tissue, x = ~V1, y = ~V2, z = ~V3, color = ~tissue, 
                      colors = c('#ff0000','#ff4da6','#ffcc00','#47d147','#33ccff','#0066ff','#6600ff'), alpha = 0.7)
@@ -83,20 +82,21 @@ shinyServer(function(input, output, session) {
                                          yaxis = list(title = 'V2'),
                                          zaxis = list(title = 'V3')))
       fig
-    } else {
-      mds_tissue <- read.csv("data/tissue_mds.csv")
-      fig <- plot_ly(mds_tissue, x = ~V1, y = ~V2, z = ~V3, color = ~tissue, 
-                     colors = c('#ff0000','#ff4da6','#ffcc00','#47d147','#33ccff','#0066ff','#6600ff'), alpha = 0.7)
-      fig <- fig %>% add_markers()
-      fig <- fig %>% layout(scene = list(xaxis = list(title = 'V1'),
+    } else if (input$MeasurePicker2 == "Single-Cell-RNAseq"){
+      mds_scRNAseq <- read.csv("data/scRNAseq_mds.csv")
+      # mds_scRNAseq <- mds_scRNAseq %>% mutate(label = as.factor(label))
+      fig1 <- plot_ly(mds_scRNAseq, x = ~V1, y = ~V2, z = ~V3, color = ~as.factor(label), 
+                     colors = c('#FE642E','#7cc652','#2ECCFA','#8181F7','#F7819F'), alpha = 0.7)
+      fig1 <- fig1 %>% add_markers()
+      fig1 <- fig1 %>% layout(scene = list(xaxis = list(title = 'V1'),
                                          yaxis = list(title = 'V2'),
                                          zaxis = list(title = 'V3')))
-      fig
-    }
+      fig1
+    } 
   })
   
   output$tsne <- renderPlotly({
-    if (input$MeasurePicker == "Microarray"){
+    if (input$MeasurePicker3 == "Microarray"){
       # data
       allpcs <- read.csv("data/allpcs_tissue.csv")
       tissue <- read.csv("data/tissue.csv") 
@@ -114,28 +114,24 @@ shinyServer(function(input, output, session) {
                                          yaxis = list(title = 'V2'),
                                          zaxis = list(title = 'V3')))
       fig
-    } else {
+    } else if (input$MeasurePicker3 == "Single-Cell-RNAseq"){
       # data
-      allpcs <- read.csv("data/allpcs_tissue.csv")
-      tissue <- read.csv("data/tissue.csv") 
-      tsne.results <- Rtsne(allpcs, check_duplicates = FALSE, dims=3, theta=0.0, pca=FALSE, verbose=FALSE, max_iter=input$Max_Iteration, perplexity=input$Perplexity)
-      colnames(tsne.results$Y) <- c("V1", "V2", "V3")
-      mytsnedata <- data.frame(tsne.results$Y)
-      mytsnedata <- mytsnedata %>% mutate(tissue = tissue)
+      allpcs_scRNAseq <- read.csv("data/scRNAseq_allpc.csv")
+      
+      tsne.results_scRNAseq <- Rtsne(allpcs_scRNAseq[, 1:50], check_duplicates = FALSE, dims=3, theta=0.0, pca=FALSE, verbose=FALSE, max_iter=input$Max_Iteration, perplexity=input$Perplexity)
+      colnames(tsne.results_scRNAseq$Y) <- c("V1", "V2", "V3")
+      mytsnedata_scRNAseq <- data.frame(tsne.results_scRNAseq$Y)
+      mytsnedata_scRNAseq <- mytsnedata_scRNAseq %>% mutate(label = as.factor(allpcs_scRNAseq$label))
       
       # plot
-      fig <- plot_ly(mytsnedata, x = ~V1, y = ~V2, z = ~V3, color = ~tissue, 
-                     colors = c('#ff0000','#ff4da6','#ffcc00','#47d147','#33ccff','#0066ff','#6600ff'), alpha = 0.7)
-      fig <- fig %>% add_markers()
-      fig <- fig %>% layout(scene = list(xaxis = list(title = 'V1'),
+      fig1 <- plot_ly(mytsnedata_scRNAseq, x = ~V1, y = ~V2, z = ~V3, color = ~label, 
+                     colors = c('#FE642E','#7cc652','#2ECCFA','#8181F7','#F7819F'), alpha = 0.7)
+      fig1 <- fig1 %>% add_markers()
+      fig1 <- fig1 %>% layout(scene = list(xaxis = list(title = 'V1'),
                                          yaxis = list(title = 'V2'),
                                          zaxis = list(title = 'V3')))
-      fig
+      fig1
     }
   })
-  
-
-  
-  
   
 })
