@@ -145,3 +145,8 @@ SMART <- table %>%
 mybindeddf <- bind_rows(BIOCARTA, COG_ONTOLOGY, GOTERM_BP_DIRECT, GOTERM_CC_DIRECT,
                         GOTERM_MF_DIRECT, INTERPRO, KEGG_PATHWAY, OMIM_DISEASE, 
                         PIR_SUPERFAMILY, SMART)
+# write.csv(mybindeddf, "data/mybindeddf4networks.csv", row.names = FALSE)
+# new <- read.csv("data/mybindeddf4networks.csv")
+
+# write.csv(data.frame(chart), "data/mybindeddf4networks.csv", row.names = FALSE)
+# new <- read.csv("data/mybindeddf4networks.csv")
